@@ -9,15 +9,14 @@ local scene = composer.newScene()
 
 -- include Corona's "physics" library
 local physics = require "physics"
-local ShakeHandler = require("Modules.handle-shake")
+local ShakeHandler = require("Modules.shake-handler")
 
 --------------------------------------------
 
 -- forward declarations and other locals
 local topBarHeight = 80
 local bottomBarHeight = 80
-local bannerAdHeight = 90
-local topBarFontSize = 30
+local topBarFontSize = 20
 
 local topBarRect = {
     x = display.contentCenterX, 
@@ -25,31 +24,18 @@ local topBarRect = {
     w = display.safeActualContentWidth, 
     h = topBarHeight
 }
-
-local bannerAdRect = {
-	x = display.contentCenterX, 
-    y = display.safeActualContentHeight+display.safeScreenOriginY-bannerAdHeight/2, 
-    w = display.safeActualContentWidth, 
-    h = bannerAdHeight
-}
-
 local btmBarRect = {
     x = display.contentCenterX, 
-    y = display.safeActualContentHeight+display.safeScreenOriginY-bottomBarHeight/2-bannerAdHeight, 
+    y = display.safeActualContentHeight+display.safeScreenOriginY-bottomBarHeight/2, 
     w = display.safeActualContentWidth, 
     h = bottomBarHeight
 }
-
 local mainDispRect = {
     x = display.contentCenterX, 
-    --y = topBarRect.y+topBarHeight/2+(btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2)/2, 
-	y = display.safeScreenOriginY + (btmBarRect.y-topBarRect.y+(topBarHeight+bottomBarHeight)/2) / 2,
-	w = display.safeActualContentWidth, 
-	--h = btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2+topBarRect.h
-	h = btmBarRect.y-topBarRect.y+(topBarHeight+bottomBarHeight)/2
+    y = topBarRect.y+topBarHeight/2+(btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2)/2, 
+    w = display.safeActualContentWidth, 
+    h = btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2
 }
-
-
 
 local particleSystem
 
@@ -125,8 +111,7 @@ function scene:create( event )
 
 	-- Create Top Bar
 	local topBar = display.newRect(topBarRect.x, topBarRect.y, topBarRect.w, topBarRect.h)
-	--topBar:setFillColor(243/255, 159/255, 65/255, 1)
-	topBar:setFillColor(243/255, 159/255, 65/255, 0.3)
+	topBar:setFillColor(243/255, 159/255, 65/255, 1)
 	
 	-- Top Bar HUD
 	-- DRAFT
@@ -135,77 +120,55 @@ function scene:create( event )
 		topBarRect.x-topBarRect.w*2/8, topBarRect.y-topBarRect.h*2/8, 
 		native.systemFont, topBarFontSize 
 	)
-    shakesCounterText:setFillColor( 0,0,1,1 )
+    shakesCounterText:setFillColor( 0,0,0,1 )
     secondsCounterText = display.newText(
 		"Secs: 0", 
 		topBarRect.x-topBarRect.w*2/8, topBarRect.y+topBarRect.h*2/8, 
 		native.systemFont, topBarFontSize 
 	)
-    secondsCounterText:setFillColor( 0,0,1,1)
+    secondsCounterText:setFillColor( 0,0,0,1)
 	shakesPerSecondText = display.newText(
 		"SpS: 0", 
-		topBarRect.x+topBarRect.w*2/8, topBarRect.y-topBarRect.h*2/8, 
+		topBarRect.x+topBarRect.w*3/8, topBarRect.y-topBarRect.h*2/8, 
 		native.systemFont, topBarFontSize 
 	)
-    shakesPerSecondText:setFillColor( 0,0,1,1 )
+    shakesPerSecondText:setFillColor( 0,0,0,1 )
 
 	-- Create Bottom Bar
 	local btmBar = display.newRect(btmBarRect.x, btmBarRect.y, btmBarRect.w, btmBarRect.h)
-	btmBar:setFillColor(243/255, 159/255, 65/255, 0.3)
+	btmBar:setFillColor(1,1,0)
 	
 	-- Bottom Bar Icons
-	
-	-- Left icon
+	--DRAFT
 	local iconWidth, iconHeight = btmBarRect.w/4, bottomBarHeight
-	-- local btmBarIcon1 = display.newRect(
-	-- 	btmBarRect.x-btmBarRect.w/2+iconWidth/2,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	--btmBarIcon1:setFillColor(1,0,0,1)
-	local btmBarIcon1 =display.newImageRect( "Assets/icon-results.png", iconWidth, iconHeight )
-	btmBarIcon1.x = btmBarRect.x-btmBarRect.w/2+iconWidth/2
-	btmBarIcon1.y = btmBarRect.y
-	
-	--Middle Icon
-	-- local btmBarIcon2 = display.newRect(
-	-- 	btmBarRect.x,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	-- btmBarIcon2:setFillColor(0,1,0,1)
-	local btmBarIcon2 =display.newImageRect( "Assets/icon-battle.png", iconWidth, iconHeight )
-	btmBarIcon2.x = btmBarRect.x
-	btmBarIcon2.y = btmBarRect.y
-	
-	-- Right Icon
-	-- local btmBarIcon3 = display.newRect(
-	-- 	btmBarRect.x+btmBarRect.w/2-iconWidth/2,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	-- btmBarIcon3:setFillColor(0,0,1,1)
-	local btmBarIcon3 =display.newImageRect( "Assets/icon-store.png", iconWidth, iconHeight )
-	btmBarIcon3.x = btmBarRect.x+btmBarRect.w/2-iconWidth/2
-	btmBarIcon3.y = btmBarRect.y
-
-	-- Garbage
-	-- local btmBarIcon4 = display.newRect(
-	-- 	btmBarRect.x+iconWidth*3/2,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	-- btmBarIcon4:setFillColor(1,1,0,1)
-
-
-	-- Create AdBanner Bar
-	local bannerAd = display.newRect(bannerAdRect.x, bannerAdRect.y, bannerAdRect.w, bannerAdRect.h)
-	bannerAd:setFillColor(243/255, 159/255, 65/255, 1)
-
+	local btmBarIcon1 = display.newRect(
+		btmBarRect.x-iconWidth*3/2,
+		btmBarRect.y,
+		iconWidth,
+		iconHeight
+	)
+	btmBarIcon1:setFillColor(1,0,0,1)
+	local btmBarIcon2 = display.newRect(
+		btmBarRect.x-iconWidth*1/2,
+		btmBarRect.y,
+		iconWidth,
+		iconHeight
+	)
+	btmBarIcon2:setFillColor(0,1,0,1)
+	local btmBarIcon3 = display.newRect(
+		btmBarRect.x+iconWidth*1/2,
+		btmBarRect.y,
+		iconWidth,
+		iconHeight
+	)
+	btmBarIcon3:setFillColor(0,0,1,1)
+	local btmBarIcon4 = display.newRect(
+		btmBarRect.x+iconWidth*3/2,
+		btmBarRect.y,
+		iconWidth,
+		iconHeight
+	)
+	btmBarIcon4:setFillColor(1,1,0,1)
 
 	-- Crate Main Display for liquid display
 	local mainDisp = display.newRect(mainDispRect.x, mainDispRect.y, mainDispRect.w, mainDispRect.h)
@@ -225,7 +188,7 @@ function scene:create( event )
 		borderBoxThickness, 
 		mainDispRect.h 
 	)
-	borderLeftSide:setFillColor(0,0,0,0)
+	borderLeftSide:setFillColor(1,1,1,0.3)
 	physics.addBody( borderLeftSide, "static" )
 	local borderRightSide = display.newRect(
 		mainDispRect.x + mainDispRect.w/2 + borderBoxThickness/2-0,
@@ -233,7 +196,7 @@ function scene:create( event )
 		borderBoxThickness, 
 		mainDispRect.h 
 	)
-	borderRightSide:setFillColor(0,0,0,0)
+	borderRightSide:setFillColor(1,1,1,0.3)
 	physics.addBody( borderRightSide, "static" )
 	local borderTopSide = display.newRect(
 		mainDispRect.x, 
@@ -241,7 +204,7 @@ function scene:create( event )
 		mainDispRect.w, 
 		borderBoxThickness
 	)
-	borderTopSide:setFillColor(0,0,0,0)
+	borderTopSide:setFillColor(1,1,1,0.3)
 	physics.addBody( borderTopSide, "static" )
 	local borderBottomSide =  display.newRect(
 		mainDispRect.x, 
@@ -249,7 +212,7 @@ function scene:create( event )
 		mainDispRect.w, 
 		borderBoxThickness
 	)
-	borderBottomSide:setFillColor(0,0,0,0)
+	borderBottomSide:setFillColor(1,1,1,0.3)
 	physics.addBody( borderBottomSide, "static" )
 
 	-- Create a liquid fun Particle System
@@ -273,22 +236,6 @@ function scene:create( event )
 	  }
 	)
 
--- -- Initialize snapshot for mainDisp since we want to put effects on in
--- snapshot = display.newSnapshot( sceneGroup, mainDispRect.w, mainDispRect.h )
--- local snapshotGroup = snapshot.group
--- snapshot.x = mainDispRect.x
--- snapshot.y = mainDispRect.y
--- snapshot.canvasMode = "discard"
--- snapshot.alpha = 0.8
--- -- Apply filter to MainDisp
--- snapshot.fill.effect = "filter.sobel"
--- --snapshot.fill.effect = "filter.blur"
--- -- Insert the particle system into the snapshot
--- snapshotGroup:insert( particleSystem )
--- snapshotGroup.x = -mainDispRect.w/2
--- snapshotGroup.y = -mainDispRect.h/2
--- -- Remember to invalidate Snapshot in onEnterFrame Event Handler
-
 
 	-- all display objects must be inserted into group
 	sceneGroup:insert( mainDisp )
@@ -296,7 +243,6 @@ function scene:create( event )
 	sceneGroup:insert( borderRightSide )
 	sceneGroup:insert( borderBottomSide )
 	sceneGroup:insert( borderTopSide )
-	sceneGroup:insert( particleSystem )
 	sceneGroup:insert( topBar )
 	sceneGroup:insert( shakesCounterText )
 	sceneGroup:insert( secondsCounterText )
@@ -305,8 +251,7 @@ function scene:create( event )
 	sceneGroup:insert( btmBarIcon1 )
 	sceneGroup:insert( btmBarIcon2 )
 	sceneGroup:insert( btmBarIcon3 )
-	--sceneGroup:insert( btmBarIcon4 )
-	sceneGroup:insert( bannerAd )
+	sceneGroup:insert( btmBarIcon4 )
 	
 end
 
@@ -323,6 +268,23 @@ function scene:show( event )
 		-- Called when the scene is now on screen
 		-- 
 		-- INSERT code here to make the scene come alive
+
+-- -- Initialize snapshot for mainDisp since we want to put effects on in
+-- snapshot = display.newSnapshot( sceneGroup, mainDispRect.w, mainDispRect.h )
+-- local snapshotGroup = snapshot.group
+-- snapshot.x = mainDispRect.x
+-- snapshot.y = mainDispRect.y
+-- snapshot.canvasMode = "discard"
+-- snapshot.alpha = 0.8
+-- -- Apply filter to MainDisp
+-- snapshot.fill.effect = "filter.sobel"
+-- --snapshot.fill.effect = "filter.blur"
+-- -- Insert the particle system into the snapshot
+-- snapshotGroup:insert( particleSystem )
+-- snapshotGroup.x = -mainDispRect.w/2
+-- snapshotGroup.y = -mainDispRect.h/2
+-- -- Remember to invalidate Snapshot in onEnterFrame Event Handler
+
 
 		-- e.g. start timers, begin animation, play audio, etc.
 		physics.start()
