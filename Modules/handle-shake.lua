@@ -11,6 +11,32 @@ M.shakesPerSecond = 0
 M.lastShakeStrength = 0
 M.thisShakeStrength = 0
 
+local secsTimer = 0
+local secsInLevel = 0
+
+
+
+--
+-- event handler timer
+--
+function M:timer(event)
+    secsInLevel = secsInLevel + 1
+    self.shakesPerSecond = 0
+end
+
+
+--
+-- event handler system
+--
+function M:system ( event )
+    if event.type == "applicationSuspend" then
+        timer.pause(secsTimer)
+    elseif event.type == "applicationResume" then
+        timer.resume(secsTimer)
+    end
+end
+
+
 --
 -- event handler accelerometer
 --
@@ -41,23 +67,31 @@ function M:accelerometer ( event )
     self.grav.z = gz
 end
 
-function M:getShakeSpeed ()
-    return ({x=self.acc.x, y=self.acc.y, z=self.acc.z})
+
+function M:resetTimer()
+    secsInLevel = 0
 end
 
-function M:getAccel ()
-    return self.acc.x, self.acc.y, self.acc.z
+function M:getSecsInLevel()
+    return secsInLevel
+end
+
+
+function M:getShakeSpeed ()
+    return ({x=self.acc.x, y=self.acc.y, z=self.acc.z})
 end
 
 function M:getShakeStrength ()
     return (self.lastShakeStrength * self.shakesPerSecond)
 end
 
+function M:getAccel ()
+    return self.acc.x, self.acc.y, self.acc.z
+end
+
 function M:getGravity ()
     return self.grav.x, self.grav.y
 end
-
-
 
 function M:countShake(strength)
     self.shakesCounter = self.shakesCounter + 0.5
@@ -69,6 +103,7 @@ function M:countShake(strength)
 
 function M:create (event)
     system.setAccelerometerInterval( 60 )
+    secsInLevel = 0
 end
 
 
@@ -79,14 +114,21 @@ function M:show (event)
     elseif (phase == "did") then
         -- showing now
         Runtime:addEventListener( "accelerometer", M )
+        Runtime:addEventListener( "system", M )
+        secsTimer = timer.performWithDelay( 1000, M, 0 )
+
     end
 end
+
+
 
 function M:hide (event)
     local phase = event.phase
     if (phase == "will") then
         -- will hide
+        timer.cancel(secsTimer)
         Runtime:removeEventListener( "accelerometer", M )
+        Runtime:removeEventListener( "system", M )
     elseif (phase == "did") then
         -- hiding now
     end

@@ -4,6 +4,9 @@
 --
 -----------------------------------------------------------------------------------------
 
+AUDIOCHANNEL_BUTTON = 1
+
+
 local composer = require( "composer" )
 local scene = composer.newScene()
 
@@ -11,12 +14,18 @@ local scene = composer.newScene()
 local physics = require "physics"
 local ShakeHandler = require("Modules.handle-shake")
 
+local ToolbarBottom = require("Modules.toolbar-bottom")
+local btmBar = nil
+
+local ToolbarTop = require("Modules.toolbar-top")
+local topBar = nil
+
 --------------------------------------------
 
 -- forward declarations and other locals
 local topBarHeight = 80
 local bottomBarHeight = 80
-local bannerAdHeight = 90
+local bannerAdHeight = 0
 local topBarFontSize = 30
 
 local topBarRect = {
@@ -56,13 +65,11 @@ local particleSystem
 --
 -- Member vars
 --
-local shakesCounterText = nil
-local secondsCounterText = nil
-local shakesPerSecondText = nil
 
-local shakeStrength = 0
+
+--local shakeStrength = 0
 local shakesCounterTarget = 100
-local secondsCounter = 0
+-- local secondsCounter = 0
 
 local particleSystem
 
@@ -73,14 +80,16 @@ local particleSystem
 --
 local function onEnterFrame ( event )
 	--snapshot:invalidate()
-	local secsInGame = math.floor(event.time/1000)
-	if secsInGame > secondsCounter then
-	  shakesCounterText.text = "Count: " .. tostring(ShakeHandler.shakesCounter)
-	  shakesPerSecondText.text = "SpS: " .. tostring(ShakeHandler.shakesPerSecond)
-	  ShakeHandler.shakesPerSecond = 0
-	  secondsCounter = secsInGame
-	  secondsCounterText.text = "Secs: " .. tostring(secondsCounter)
-	end
+	
+	topBar:setShakesCounter(ShakeHandler.shakesCounter)
+	topBar:setSPS(ShakeHandler.shakesPerSecond)
+	
+	-- local secsInGame = math.floor(event.time/1000)
+	-- if secsInGame > secondsCounter then
+	-- 	--secondsCounterText.text = "Secs: " .. tostring(secsInGame)
+	-- 	ShakeHandler.shakesPerSecond = 0
+	-- 	secondsCounter = secsInGame
+	-- end
   
 	--shakeStrength = ShakeHandler:getShakeStrength()
 	--print(shakeStrength)
@@ -98,10 +107,24 @@ local function onEnterFrame ( event )
 	--local ax, ay, az = ShakeHandler:getAccel()
 	physics.setGravity( gx*20, -gy*20 + (ShakeHandler.shakesPerSecond/5))
 
+end
+  
 
-  
-  end
-  
+--
+-- event Handler: touch
+--
+local onTouch = function (event )
+    if event.phase == "began" then
+    end
+	if event.phase == "ended" then
+		if event.target and event.target.id then
+			print( "You pressed and released the "..event.target.id.." button!" )
+		else
+			print("some touch")
+		end
+    end
+end
+
   
 --------------------------------------------
 
@@ -124,83 +147,12 @@ function scene:create( event )
 	physics.pause()
 
 	-- Create Top Bar
-	local topBar = display.newRect(topBarRect.x, topBarRect.y, topBarRect.w, topBarRect.h)
-	--topBar:setFillColor(243/255, 159/255, 65/255, 1)
+	topBar = ToolbarTop:new(topBarRect.x, topBarRect.y, topBarRect.w, topBarRect.h, topBarHeight/2, topBarHeight/2)
 	topBar:setFillColor(243/255, 159/255, 65/255, 0.3)
 	
-	-- Top Bar HUD
-	-- DRAFT
-    shakesCounterText = display.newText(
-		"Count: 0", 
-		topBarRect.x-topBarRect.w*2/8, topBarRect.y-topBarRect.h*2/8, 
-		native.systemFont, topBarFontSize 
-	)
-    shakesCounterText:setFillColor( 0,0,1,1 )
-    secondsCounterText = display.newText(
-		"Secs: 0", 
-		topBarRect.x-topBarRect.w*2/8, topBarRect.y+topBarRect.h*2/8, 
-		native.systemFont, topBarFontSize 
-	)
-    secondsCounterText:setFillColor( 0,0,1,1)
-	shakesPerSecondText = display.newText(
-		"SpS: 0", 
-		topBarRect.x+topBarRect.w*2/8, topBarRect.y-topBarRect.h*2/8, 
-		native.systemFont, topBarFontSize 
-	)
-    shakesPerSecondText:setFillColor( 0,0,1,1 )
-
 	-- Create Bottom Bar
-	local btmBar = display.newRect(btmBarRect.x, btmBarRect.y, btmBarRect.w, btmBarRect.h)
+	btmBar = ToolbarBottom:new(btmBarRect.x, btmBarRect.y, btmBarRect.w, btmBarRect.h, bottomBarHeight, bottomBarHeight )
 	btmBar:setFillColor(243/255, 159/255, 65/255, 0.3)
-	
-	-- Bottom Bar Icons
-	
-	-- Left icon
-	local iconWidth, iconHeight = btmBarRect.w/4, bottomBarHeight
-	-- local btmBarIcon1 = display.newRect(
-	-- 	btmBarRect.x-btmBarRect.w/2+iconWidth/2,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	--btmBarIcon1:setFillColor(1,0,0,1)
-	local btmBarIcon1 =display.newImageRect( "Assets/icon-results.png", iconWidth, iconHeight )
-	btmBarIcon1.x = btmBarRect.x-btmBarRect.w/2+iconWidth/2
-	btmBarIcon1.y = btmBarRect.y
-	
-	--Middle Icon
-	-- local btmBarIcon2 = display.newRect(
-	-- 	btmBarRect.x,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	-- btmBarIcon2:setFillColor(0,1,0,1)
-	local btmBarIcon2 =display.newImageRect( "Assets/icon-battle.png", iconWidth, iconHeight )
-	btmBarIcon2.x = btmBarRect.x
-	btmBarIcon2.y = btmBarRect.y
-	
-	-- Right Icon
-	-- local btmBarIcon3 = display.newRect(
-	-- 	btmBarRect.x+btmBarRect.w/2-iconWidth/2,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	-- btmBarIcon3:setFillColor(0,0,1,1)
-	local btmBarIcon3 =display.newImageRect( "Assets/icon-store.png", iconWidth, iconHeight )
-	btmBarIcon3.x = btmBarRect.x+btmBarRect.w/2-iconWidth/2
-	btmBarIcon3.y = btmBarRect.y
-
-	-- Garbage
-	-- local btmBarIcon4 = display.newRect(
-	-- 	btmBarRect.x+iconWidth*3/2,
-	-- 	btmBarRect.y,
-	-- 	iconWidth,
-	-- 	iconHeight
-	-- )
-	-- btmBarIcon4:setFillColor(1,1,0,1)
-
 
 	-- Create AdBanner Bar
 	local bannerAd = display.newRect(bannerAdRect.x, bannerAdRect.y, bannerAdRect.w, bannerAdRect.h)
@@ -297,15 +249,8 @@ function scene:create( event )
 	sceneGroup:insert( borderBottomSide )
 	sceneGroup:insert( borderTopSide )
 	sceneGroup:insert( particleSystem )
-	sceneGroup:insert( topBar )
-	sceneGroup:insert( shakesCounterText )
-	sceneGroup:insert( secondsCounterText )
-	sceneGroup:insert( shakesPerSecondText )
-	sceneGroup:insert( btmBar )
-	sceneGroup:insert( btmBarIcon1 )
-	sceneGroup:insert( btmBarIcon2 )
-	sceneGroup:insert( btmBarIcon3 )
-	--sceneGroup:insert( btmBarIcon4 )
+	sceneGroup:insert( topBar.display )
+	sceneGroup:insert( btmBar.display )
 	sceneGroup:insert( bannerAd )
 	
 end
@@ -328,6 +273,8 @@ function scene:show( event )
 		physics.start()
 		ShakeHandler:show(event)
 		Runtime:addEventListener( "enterFrame", onEnterFrame )
+		Runtime:addEventListener( "touch", onTouch )
+		
 	end
 end
 
@@ -344,6 +291,7 @@ function scene:hide( event )
 		-- INSERT code here to pause the scene
 		-- e.g. stop timers, stop animation, unload sounds, etc.)
 		Runtime:removeEventListener( "enterFrame", onEnterFrame )
+		Runtime:removeEventListener( "touch", onTouch )
 		ShakeHandler:hide(event)
 		physics.stop()
 	elseif phase == "did" then
