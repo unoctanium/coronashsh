@@ -168,17 +168,31 @@ local onTouch = function (event )
     end
 	if event.phase == "ended" then
 		
-		if sideBarLeft.isOpen then sideBarLeft:close() end
-		if sideBarRight.isOpen then sideBarRight:close() end
-		if sideBarBottom.isOpen then sideBarBottom:close() end
-		if sideBarSettings.isOpen then sideBarSettings:close() end
+		if event.target and event.target.id == "btnCamera" then 
+			sideBarLeft:closeFast()
+			sideBarRight:closeFast()
+			sideBarBottom:closeFast()
+			sideBarSettings:closeFast()
+			bannerAd:closeFast()
+			windowScreenshot:takePicture() 
+		else
 
-		if event.target and event.target.id then print( "You pressed and released the "..event.target.id.." button!" ) end
-		if event.target and event.target.id == "btnResults" then sideBarLeft:open() end
-		if event.target and event.target.id == "btnBattle" then sideBarBottom:open() end
-		if event.target and event.target.id == "btnStore" then sideBarRight:open() end
-		if event.target and event.target.id == "btnSettings" then sideBarSettings:open() end
+			if sideBarLeft.isOpen then sideBarLeft:close() end
+			if sideBarRight.isOpen then sideBarRight:close() end
+			if sideBarBottom.isOpen then sideBarBottom:close() end
+			if sideBarSettings.isOpen then sideBarSettings:close() end
+	
+			if event.target and event.target.id then print( "You pressed and released the "..event.target.id.." button!" ) end
+			if event.target and event.target.id == "btnResults" then sideBarLeft:open() end
+			if event.target and event.target.id == "btnBattle" then sideBarBottom:open() end
+			if event.target and event.target.id == "btnStore" then sideBarRight:open() end
+			if event.target and event.target.id == "btnSettings" then sideBarSettings:open() end
 		
+		end
+
+
+		
+	
 	
 		--return true; -- put this in your function.
     end
@@ -222,7 +236,7 @@ function scene:create( event )
 
 	-- Create ScreenshotWindow and Hide it
 	windowScreenshot = WindowScreenshot:new(windowScreenshotRect.x, windowScreenshotRect.y, windowScreenshotRect.w, windowScreenshotRect.h)
-	windowScreenshot:hide()
+	--windowScreenshot:hide()
 
 	-- Create Sidebar Left and Hide
 	sideBarLeft = SideBarLeft:new(sidebarLeftRect.x, sidebarLeftRect.y, sidebarLeftRect.w, sidebarLeftRect.h)
@@ -246,7 +260,7 @@ function scene:create( event )
 	sceneGroup:insert( btmBar.display )
 	sceneGroup:insert( bannerAd.display )
 	sceneGroup:insert( windowAd.display )
-	sceneGroup:insert( windowScreenshot.display )
+	--sceneGroup:insert( windowScreenshot.display )
 	sceneGroup:insert( sideBarLeft.display )
 	sceneGroup:insert( sideBarRight.display )
 	sceneGroup:insert( sideBarBottom.display )

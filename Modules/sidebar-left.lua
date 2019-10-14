@@ -68,4 +68,10 @@ function M:close()
     self.isOpen = false
 end
 
+function M:closeFast()
+    self.bkg:removeEventListener("touch", self)
+    self.display.x = self.xClose
+    self.isOpen = false
+end
+
 return M

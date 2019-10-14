@@ -21,6 +21,7 @@ settings =
 		usesPermissions =
 		{
 			"android.permission.INTERNET",
+			"android.permission.WRITE_EXTERNAL_STORAGE",
 		},
 	},
 
@@ -34,6 +35,9 @@ settings =
 		{
 			UIStatusBarHidden = false,
 			UILaunchStoryboardName = "LaunchScreen",
+			NSPhotoLibraryUsageDescription = "This app would like to access the photo library.",
+            NSPhotoLibraryAddUsageDescription = "This app would like to add the photo library.",
+			NSMotionUsageDescription = "This app would like to access the accelerometer.",
 		},
 	},
 

@@ -11,7 +11,7 @@ M.shakesPerSecond = 0
 M.lastShakeStrength = 0
 M.thisShakeStrength = 0
 
-local secsTimer = 0
+local secsTimer = nil
 local secsInLevel = 0
 
 
@@ -32,7 +32,9 @@ function M:system ( event )
     if event.type == "applicationSuspend" then
         timer.pause(secsTimer)
     elseif event.type == "applicationResume" then
-        timer.resume(secsTimer)
+        if secsTimer then
+            timer.resume(secsTimer)
+        end
     end
 end
 
