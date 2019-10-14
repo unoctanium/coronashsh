@@ -1,22 +1,57 @@
------------------------------------------------------------------------------------------
---
--- level1.lua
---
------------------------------------------------------------------------------------------
 
 local composer = require( "composer" )
 local scene = composer.newScene()
 
--- include Corona's "physics" library
-local physics = require "physics"
-local ShakeHandler = require("Modules.shake-handler")
+--
+-- GLOBALS
+--
+AUDIOCHANNEL_BUTTON = 1
+AUDIOCHANNEL_PANEL = 2
+ShakeHandler = require("Modules.handle-shake")
+
+--
+-- LOCALS
+--
+
+
+
+local WindowGame = require ("Modules.window-game")
+local windowGame = nil
+
+local ToolbarBottom = require("Modules.toolbar-bottom")
+local btmBar = nil
+
+local ToolbarTop = require("Modules.toolbar-top")
+local topBar = nil
+
+local WindowBannerAd = require ("Modules.window-bannerAd")
+local bannerAd = nil
+
+local WindowAd = require ("Modules.window-ad")
+local windowAd = nil
+
+local WindowScreenshot = require ("Modules.window-screenshot")
+local windowScreenshot = nil
+
+local SideBarLeft = require("Modules.sidebar-left")
+local sideBarLeft = nil
+
+local SideBarRight = require("Modules.sidebar-right")
+local sideBarRight = nil
+
+local SideBarBottom = require("Modules.sidebar-bottom")
+local sideBarBottom = nil
+
+local SideBarSettings = require("Modules.sidebar-settings")
+local sideBarSettings = nil
 
 --------------------------------------------
 
 -- forward declarations and other locals
 local topBarHeight = 80
 local bottomBarHeight = 80
-local topBarFontSize = 20
+local bannerAdHeight = 0
+local topBarFontSize = 30
 
 local topBarRect = {
     x = display.contentCenterX, 
@@ -24,33 +59,83 @@ local topBarRect = {
     w = display.safeActualContentWidth, 
     h = topBarHeight
 }
+
+local bannerAdRect = {
+	x = display.contentCenterX, 
+    y = display.safeActualContentHeight+display.safeScreenOriginY-bannerAdHeight/2, 
+    w = display.safeActualContentWidth, 
+    h = bannerAdHeight
+}
+
 local btmBarRect = {
     x = display.contentCenterX, 
-    y = display.safeActualContentHeight+display.safeScreenOriginY-bottomBarHeight/2, 
+    y = display.safeActualContentHeight+display.safeScreenOriginY-bottomBarHeight/2-bannerAdHeight, 
     w = display.safeActualContentWidth, 
     h = bottomBarHeight
 }
-local mainDispRect = {
+
+local windowGameRect = {
     x = display.contentCenterX, 
-    y = topBarRect.y+topBarHeight/2+(btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2)/2, 
-    w = display.safeActualContentWidth, 
-    h = btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2
+    --y = topBarRect.y+topBarHeight/2+(btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2)/2, 
+	y = display.safeScreenOriginY + (btmBarRect.y-topBarRect.y+(topBarHeight+bottomBarHeight)/2) / 2,
+	w = display.safeActualContentWidth, 
+	--h = btmBarRect.y-topBarRect.y-(topBarHeight+bottomBarHeight)/2+topBarRect.h
+	h = btmBarRect.y-topBarRect.y+(topBarHeight+bottomBarHeight)/2
 }
 
-local particleSystem
+local windowAdRect = {
+	x = display.contentCenterX,
+	y = display.contentCenterY,
+	w = display.safeActualContentWidth,
+	h = display.safeActualContentHeight
+}
+
+local windowScreenshotRect = {
+	x = display.contentCenterX,
+	y = display.contentCenterY,
+	w = display.safeActualContentWidth,
+	h = display.safeActualContentHeight
+}
+
+local sidebarLeftRect = {
+	x = display.safeScreenOriginX + display.safeActualContentWidth*1/3,
+	y = (display.safeActualContentHeight)/2 + display.safeScreenOriginY,
+	w = display.safeActualContentWidth *2/3,
+	h = display.safeActualContentHeight
+}
+
+local sidebarRightRect = {
+	x = display.safeScreenOriginX + display.safeActualContentWidth * 2/3,
+	y = (display.safeActualContentHeight)/2 + display.safeScreenOriginY,
+	w = display.safeActualContentWidth *2/3,
+	h = display.safeActualContentHeight
+}
+
+local sideBarBottomRect = {
+	x = display.contentCenterX,
+	y = (display.safeActualContentHeight)/2 + display.safeScreenOriginY,
+	w = display.safeActualContentWidth,
+	h = display.safeActualContentHeight
+}
+
+local sideBarSettingsRect = {
+	x = display.safeScreenOriginX + display.safeActualContentWidth * 2/3,
+	y = (display.safeActualContentHeight)/2 + display.safeScreenOriginY,
+	w = display.safeActualContentWidth *2/3,
+	h = display.safeActualContentHeight
+}
+
+
 
 --
--- Member vars
+-- Game Parameters
 --
-local shakesCounterText = nil
-local secondsCounterText = nil
-local shakesPerSecondText = nil
 
-local shakeStrength = 0
+--local shakeStrength = 0
 local shakesCounterTarget = 100
-local secondsCounter = 0
+-- local secondsCounter = 0
 
-local particleSystem
+
 
 --------------------------------------------
 
@@ -59,35 +144,46 @@ local particleSystem
 --
 local function onEnterFrame ( event )
 	--snapshot:invalidate()
-	local secsInGame = math.floor(event.time/1000)
-	if secsInGame > secondsCounter then
-	  shakesCounterText.text = "Count: " .. tostring(ShakeHandler.shakesCounter)
-	  shakesPerSecondText.text = "SpS: " .. tostring(ShakeHandler.shakesPerSecond)
-	  ShakeHandler.shakesPerSecond = 0
-	  secondsCounter = secsInGame
-	  secondsCounterText.text = "Secs: " .. tostring(secondsCounter)
-	end
+	
+	topBar:setShakesCounter(ShakeHandler.shakesCounter)
+	topBar:setSPS(ShakeHandler.shakesPerSecond)
+	
+	-- local secsInGame = math.floor(event.time/1000)
+	-- if secsInGame > secondsCounter then
+	-- 	--secondsCounterText.text = "Secs: " .. tostring(secsInGame)
+	-- 	ShakeHandler.shakesPerSecond = 0
+	-- 	secondsCounter = secsInGame
+	-- end
   
-	--shakeStrength = ShakeHandler:getShakeStrength()
-	--print(shakeStrength)
-	-- do something with shakeStrength
-	-- local yForce = -math.abs(shakeStrength) 
-	-- particleSystem:applyForce( 0, yForce *2)
+	windowGame:updateForces()
+
+end
   
-	-- local ax, ay, az = ShakeHandler:getAccel()
-	-- particleSystem:applyForce( ax*ax*ax * 40, ay*ay*ay * 40)
 
-	-- local gx, gy, gz = ShakeHandler:getGravity()
-	-- physics.setGravity( gx*20, -gy*20)
+--
+-- event Handler: touch
+--
+local onTouch = function (event )
+    if event.phase == "began" then
+    end
+	if event.phase == "ended" then
+		
+		if sideBarLeft.isOpen then sideBarLeft:close() end
+		if sideBarRight.isOpen then sideBarRight:close() end
+		if sideBarBottom.isOpen then sideBarBottom:close() end
+		if sideBarSettings.isOpen then sideBarSettings:close() end
 
-	local gx, gy, gz = ShakeHandler:getGravity()
-	--local ax, ay, az = ShakeHandler:getAccel()
-	physics.setGravity( gx*20, -gy*20 + (ShakeHandler.shakesPerSecond/5))
+		if event.target and event.target.id then print( "You pressed and released the "..event.target.id.." button!" ) end
+		if event.target and event.target.id == "btnResults" then sideBarLeft:open() end
+		if event.target and event.target.id == "btnBattle" then sideBarBottom:open() end
+		if event.target and event.target.id == "btnStore" then sideBarRight:open() end
+		if event.target and event.target.id == "btnSettings" then sideBarSettings:open() end
+		
+	
+		--return true; -- put this in your function.
+    end
+end
 
-
-  
-  end
-  
   
 --------------------------------------------
 
@@ -97,162 +193,65 @@ function scene:create( event )
 	-- 
 	-- INSERT code here to initialize the scene
 	-- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
-	ShakeHandler:create(event)
+
+	ShakeHandler:new()
 
 	-- Display Group to insert all Scene paintings into
 	local sceneGroup = self.view
 
-	-- We need physics started to add bodies, but we don't want the simulaton
-	-- running until the scene is on the screen.
-	physics.start()
-	physics.setGravity( 0, 10)
-	physics.setDrawMode( "normal" )
-	physics.pause()
+
+	-- Create Main Game Group
+	windowGame = WindowGame:new(windowGameRect.x, windowGameRect.y, windowGameRect.w, windowGameRect.h)
+	--windowGame:setFillColor(0,0,0,1)
 
 	-- Create Top Bar
-	local topBar = display.newRect(topBarRect.x, topBarRect.y, topBarRect.w, topBarRect.h)
-	topBar:setFillColor(243/255, 159/255, 65/255, 1)
+	topBar = ToolbarTop:new(topBarRect.x, topBarRect.y, topBarRect.w, topBarRect.h, topBarHeight/2, topBarHeight/2)
+	topBar:setFillColor(243/255, 159/255, 65/255, 0.3)
 	
-	-- Top Bar HUD
-	-- DRAFT
-    shakesCounterText = display.newText(
-		"Count: 0", 
-		topBarRect.x-topBarRect.w*2/8, topBarRect.y-topBarRect.h*2/8, 
-		native.systemFont, topBarFontSize 
-	)
-    shakesCounterText:setFillColor( 0,0,0,1 )
-    secondsCounterText = display.newText(
-		"Secs: 0", 
-		topBarRect.x-topBarRect.w*2/8, topBarRect.y+topBarRect.h*2/8, 
-		native.systemFont, topBarFontSize 
-	)
-    secondsCounterText:setFillColor( 0,0,0,1)
-	shakesPerSecondText = display.newText(
-		"SpS: 0", 
-		topBarRect.x+topBarRect.w*3/8, topBarRect.y-topBarRect.h*2/8, 
-		native.systemFont, topBarFontSize 
-	)
-    shakesPerSecondText:setFillColor( 0,0,0,1 )
-
 	-- Create Bottom Bar
-	local btmBar = display.newRect(btmBarRect.x, btmBarRect.y, btmBarRect.w, btmBarRect.h)
-	btmBar:setFillColor(1,1,0)
-	
-	-- Bottom Bar Icons
-	--DRAFT
-	local iconWidth, iconHeight = btmBarRect.w/4, bottomBarHeight
-	local btmBarIcon1 = display.newRect(
-		btmBarRect.x-iconWidth*3/2,
-		btmBarRect.y,
-		iconWidth,
-		iconHeight
-	)
-	btmBarIcon1:setFillColor(1,0,0,1)
-	local btmBarIcon2 = display.newRect(
-		btmBarRect.x-iconWidth*1/2,
-		btmBarRect.y,
-		iconWidth,
-		iconHeight
-	)
-	btmBarIcon2:setFillColor(0,1,0,1)
-	local btmBarIcon3 = display.newRect(
-		btmBarRect.x+iconWidth*1/2,
-		btmBarRect.y,
-		iconWidth,
-		iconHeight
-	)
-	btmBarIcon3:setFillColor(0,0,1,1)
-	local btmBarIcon4 = display.newRect(
-		btmBarRect.x+iconWidth*3/2,
-		btmBarRect.y,
-		iconWidth,
-		iconHeight
-	)
-	btmBarIcon4:setFillColor(1,1,0,1)
+	btmBar = ToolbarBottom:new(btmBarRect.x, btmBarRect.y, btmBarRect.w, btmBarRect.h, bottomBarHeight, bottomBarHeight )
+	btmBar:setFillColor(243/255, 159/255, 65/255, 0.3)
 
-	-- Crate Main Display for liquid display
-	local mainDisp = display.newRect(mainDispRect.x, mainDispRect.y, mainDispRect.w, mainDispRect.h)
-	mainDisp:setFillColor(0,0,1,0.5)
-	mainDisp.fill.effect = "generator.checkerboard"
-	mainDisp.fill.effect.color1 = { 0.2, 0.4, 0.8, 1 }
-	mainDisp.fill.effect.color2 = { 0.6, 0.6, 0.8, 1 }
-	mainDisp.fill.effect.xStep = 8
-	mainDisp.fill.effect.yStep = 8
-	
-	-- create the physics border boxes for the liquid (invisible)
-	local borderBoxThickness = 60
+	-- Create AdBanner Bar
+	bannerAd = WindowBannerAd:new(bannerAdRect.x, bannerAdRect.y, bannerAdRect.w, bannerAdRect.h)
+	bannerAd:setFillColor(243/255, 159/255, 65/255, 1)
 
-	local borderLeftSide = display.newRect(
-		mainDispRect.x - mainDispRect.w/2 - borderBoxThickness/2+0, 
-		mainDispRect.y, 
-		borderBoxThickness, 
-		mainDispRect.h 
-	)
-	borderLeftSide:setFillColor(1,1,1,0.3)
-	physics.addBody( borderLeftSide, "static" )
-	local borderRightSide = display.newRect(
-		mainDispRect.x + mainDispRect.w/2 + borderBoxThickness/2-0,
-		mainDispRect.y, 
-		borderBoxThickness, 
-		mainDispRect.h 
-	)
-	borderRightSide:setFillColor(1,1,1,0.3)
-	physics.addBody( borderRightSide, "static" )
-	local borderTopSide = display.newRect(
-		mainDispRect.x, 
-		mainDispRect.y - mainDispRect.h/2 - borderBoxThickness/2+0, 
-		mainDispRect.w, 
-		borderBoxThickness
-	)
-	borderTopSide:setFillColor(1,1,1,0.3)
-	physics.addBody( borderTopSide, "static" )
-	local borderBottomSide =  display.newRect(
-		mainDispRect.x, 
-		mainDispRect.y + mainDispRect.h/2 + borderBoxThickness/2-0, 
-		mainDispRect.w, 
-		borderBoxThickness
-	)
-	borderBottomSide:setFillColor(1,1,1,0.3)
-	physics.addBody( borderBottomSide, "static" )
+	-- Create AdWindow and Hide
+	windowAd = WindowAd:new(windowAdRect.x, windowAdRect.y, windowAdRect.w, windowAdRect.h)
+	windowAd:hide()
 
-	-- Create a liquid fun Particle System
-	particleSystem = physics.newParticleSystem{
-		filename = "Assets/particle-liquid-1.png",
-		radius = 3, --18,
-		imageRadius = 4, --30,
-		gravityScale = 1.0,
-		strictContactCheck = true
-	  }
-  
-	-- Create a "block" of water (LiquidFun group)
-	particleSystem:createGroup(
-	  {
-		  flags = { "tensile" }, --tensile, water
-		  x = mainDispRect.x,
-		  y = mainDispRect.y,
-		  color = { 0.9, 0.2, 0.2, 1},
-		  halfWidth = 138,
-		  halfHeight = 220
-	  }
-	)
+	-- Create ScreenshotWindow and Hide it
+	windowScreenshot = WindowScreenshot:new(windowScreenshotRect.x, windowScreenshotRect.y, windowScreenshotRect.w, windowScreenshotRect.h)
+	windowScreenshot:hide()
 
+	-- Create Sidebar Left and Hide
+	sideBarLeft = SideBarLeft:new(sidebarLeftRect.x, sidebarLeftRect.y, sidebarLeftRect.w, sidebarLeftRect.h)
+	sideBarLeft:hide()
+
+	-- Create Sidebar Right and Hide
+	sideBarRight = SideBarRight:new(sidebarRightRect.x, sidebarRightRect.y, sidebarRightRect.w, sidebarRightRect.h)
+	sideBarRight:hide()
+
+	-- Create Sidebar Bottom and Hide
+	sideBarBottom = SideBarBottom:new(sideBarBottomRect.x, sideBarBottomRect.y, sideBarBottomRect.w, sideBarBottomRect.h)
+	sideBarBottom:hide()
+
+	-- Create Sidebar Settings and Hide
+	sideBarSettings = SideBarSettings:new(sideBarSettingsRect.x, sideBarSettingsRect.y, sideBarSettingsRect.w, sideBarSettingsRect.h)
+	sideBarSettings:hide()
 
 	-- all display objects must be inserted into group
-	sceneGroup:insert( mainDisp )
-	sceneGroup:insert( borderLeftSide )
-	sceneGroup:insert( borderRightSide )
-	sceneGroup:insert( borderBottomSide )
-	sceneGroup:insert( borderTopSide )
-	sceneGroup:insert( topBar )
-	sceneGroup:insert( shakesCounterText )
-	sceneGroup:insert( secondsCounterText )
-	sceneGroup:insert( shakesPerSecondText )
-	sceneGroup:insert( btmBar )
-	sceneGroup:insert( btmBarIcon1 )
-	sceneGroup:insert( btmBarIcon2 )
-	sceneGroup:insert( btmBarIcon3 )
-	sceneGroup:insert( btmBarIcon4 )
-	
+	sceneGroup:insert( windowGame.display )
+	sceneGroup:insert( topBar.display )
+	sceneGroup:insert( btmBar.display )
+	sceneGroup:insert( bannerAd.display )
+	sceneGroup:insert( windowAd.display )
+	sceneGroup:insert( windowScreenshot.display )
+	sceneGroup:insert( sideBarLeft.display )
+	sceneGroup:insert( sideBarRight.display )
+	sceneGroup:insert( sideBarBottom.display )
+	sceneGroup:insert( sideBarSettings.display )
+		
 end
 
 
@@ -269,27 +268,12 @@ function scene:show( event )
 		-- 
 		-- INSERT code here to make the scene come alive
 
--- -- Initialize snapshot for mainDisp since we want to put effects on in
--- snapshot = display.newSnapshot( sceneGroup, mainDispRect.w, mainDispRect.h )
--- local snapshotGroup = snapshot.group
--- snapshot.x = mainDispRect.x
--- snapshot.y = mainDispRect.y
--- snapshot.canvasMode = "discard"
--- snapshot.alpha = 0.8
--- -- Apply filter to MainDisp
--- snapshot.fill.effect = "filter.sobel"
--- --snapshot.fill.effect = "filter.blur"
--- -- Insert the particle system into the snapshot
--- snapshotGroup:insert( particleSystem )
--- snapshotGroup.x = -mainDispRect.w/2
--- snapshotGroup.y = -mainDispRect.h/2
--- -- Remember to invalidate Snapshot in onEnterFrame Event Handler
-
-
 		-- e.g. start timers, begin animation, play audio, etc.
-		physics.start()
-		ShakeHandler:show(event)
+		ShakeHandler:show()
 		Runtime:addEventListener( "enterFrame", onEnterFrame )
+		Runtime:addEventListener( "touch", onTouch )
+		windowGame:show()
+		--sideBarLeft:show()
 	end
 end
 
@@ -305,9 +289,18 @@ function scene:hide( event )
 		--
 		-- INSERT code here to pause the scene
 		-- e.g. stop timers, stop animation, unload sounds, etc.)
+		windowGame:willHide()
+		ShakeHandler:willHide(event)
 		Runtime:removeEventListener( "enterFrame", onEnterFrame )
-		ShakeHandler:hide(event)
-		physics.stop()
+		Runtime:removeEventListener( "touch", onTouch )
+		-- sidebarLeft:willHide()
+		-- sideBarRight:willHide()
+		-- sideBarBottom:willHide()
+		-- sideBarSettings:willHide()
+		-- topBar:willHide()
+		-- btmBar:willHide()
+		-- windowAd:willHide()
+		-- bannerAd:willHide()
 	elseif phase == "did" then
 		-- Called when the scene is now off screen
 	end	
@@ -324,10 +317,39 @@ function scene:destroy( event )
 	-- e.g. remove display objects, remove touch listeners, save state, etc.
 	local sceneGroup = self.view
 	
-	package.loaded[physics] = nil
-	physics = nil
-	ShakeHandler:destroy(event)
+	ShakeHandler:destroy()
 	ShakeHandler = nil
+
+	windowGame:destroy()
+	windowGame = nil
+	
+	btmBar:destroy()
+	btmBar = nil
+	
+	topBar:destroy()
+	topBar = nil
+	
+	bannerAd:destroy()
+	bannerAd = nil
+	
+	windowAd:destroy()
+	windowAd = nil
+	
+	windowScreenshot:destroy()
+	windowScreenshot = nil
+	
+	sideBarLeft:destroy()
+	sideBarLeft = nil
+	
+	sideBarRight:destroy()
+	sideBarRight = nil
+	
+	sideBarBottom:destroy()
+	sideBarBottom = nil
+	
+	sideBarSettings:destroy()
+	sideBarSettings = nil
+
 end
 
 ---------------------------------------------------------------------------------

@@ -101,41 +101,32 @@ function M:countShake(strength)
   end
 
 
-function M:create (event)
+function M:new ()
     system.setAccelerometerInterval( 60 )
     secsInLevel = 0
 end
 
 
-function M:show (event)
-    local phase = event.phase
-    if (phase == "will") then
-        -- will show
-    elseif (phase == "did") then
-        -- showing now
-        Runtime:addEventListener( "accelerometer", M )
-        Runtime:addEventListener( "system", M )
-        secsTimer = timer.performWithDelay( 1000, M, 0 )
-
-    end
+function willShow()
 end
 
-
-
-function M:hide (event)
-    local phase = event.phase
-    if (phase == "will") then
-        -- will hide
-        timer.cancel(secsTimer)
-        Runtime:removeEventListener( "accelerometer", M )
-        Runtime:removeEventListener( "system", M )
-    elseif (phase == "did") then
-        -- hiding now
-    end
+function M:show ()
+    -- showing now
+    Runtime:addEventListener( "accelerometer", M )
+    Runtime:addEventListener( "system", M )
+    secsTimer = timer.performWithDelay( 1000, M, 0 )
 end
 
+function M:willHide()
+    timer.cancel(secsTimer)
+    Runtime:removeEventListener( "accelerometer", M )
+    Runtime:removeEventListener( "system", M )
+end
 
-function M:destroy (event)
+function M:hide ()
+end
+
+function M:destroy ()
 end
 
 return M

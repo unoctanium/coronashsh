@@ -14,7 +14,7 @@ M.isOpen = false
 --
 function M:touch(event)
     if event.phase == "ended" then
-        print("touched sidebarRight")
+        print("touched sidebarSettings")
         print(event.name)
         print(event.target)
         print(event.target.id)

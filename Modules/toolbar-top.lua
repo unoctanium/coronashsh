@@ -99,6 +99,9 @@ function M:setFillColor(r, b, g, a)
     self.bkg:setFillColor(r,b,g,a)
 end
 
+function M:willShow()
+end
+
 function M:show ()
     self.display.isVisible = true
 end
@@ -115,11 +118,14 @@ end
 function M:tween(x,y,w,h)
 end
 
-function M:hide (event)
+function M:willHide()
+end
+
+function M:hide ()
     self.display.isVisible = false
 end
 
-function M:uninit ()
+function M:destroy ()
     self.display:removeSelf()
     self.display = nil
 end
