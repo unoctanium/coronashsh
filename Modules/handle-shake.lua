@@ -4,7 +4,7 @@ local M = {}
 
 M.acc = {x=0.0, y=0.0, z=0.0}
 M.grav = {x=0.0, y=0.0, z=0.0}
-M.shakeDeadZone = 0.8
+M.shakeDeadZone = 2.5
 M.shakesCounter = 0
 M.shakesPerSecond = 0
 
@@ -14,13 +14,24 @@ M.thisShakeStrength = 0
 local secsTimer = nil
 local secsInLevel = 0
 
-
+local rrCounter = 0
+local rrLen = 5
+M.SPSAvg = {0,0,0,0,0}
+M.shakesPerSecondAvg = 0
 
 --
 -- event handler timer
 --
 function M:timer(event)
     secsInLevel = secsInLevel + 1
+    rrCounter = (rrCounter + 1) % rrLen 
+    self.SPSAvg[rrCounter] = self.shakesPerSecond 
+    local sum = 0
+    for _, v in ipairs(self.SPSAvg) do
+        sum = sum + v
+    end
+    sum = sum / rrLen
+    self.shakesPerSecondAvg = sum * 2 -- TODO: ODO Think about *2. Shall up be a shake (*2) or up/down(*1) 
     self.shakesPerSecond = 0
 end
 
@@ -55,9 +66,9 @@ function M:accelerometer ( event )
     
   
     self.thisShakeStrength = math.sqrt(dx*dx+dy*dy+dz*dz)
-    if math.abs(self.thisShakeStrength) < math.abs(self.lastShakeStrength) then -- turning
-      if self.lastShakeStrength > self.shakeDeadZone then -- out of dead zone
-        self:countShake(1)
+    if self.thisShakeStrength < self.lastShakeStrength then -- turning
+      if self.thisShakeStrength > self.shakeDeadZone then -- out of dead zone
+        self:countShake(self.thisShakeStrength)
       end   
     end
     self.lastShakeStrength = self.thisShakeStrength
@@ -96,8 +107,15 @@ function M:getGravity ()
 end
 
 function M:countShake(strength)
-    self.shakesCounter = self.shakesCounter + 0.5
-    self.shakesPerSecond = self.shakesPerSecond + 0.5
+    self.shakesCounter = self.shakesCounter +0.5
+    self.shakesPerSecond = self.shakesPerSecond +0.5
+
+    if self.shakesCounter == math.floor(self.shakesCounter) then
+        --print(strength)
+        local soundEffect = audio.loadSound("Assets/sounds/ice-shake.mp3")
+        audio.play( soundEffect, { channel = CHANNEL_SHAKER } ) 
+    end
+
     local event = { name="countShake", data=strength }
     Runtime:dispatchEvent( event )
   end

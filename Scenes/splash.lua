@@ -26,7 +26,7 @@ function scene:create(event)
     fontName,
     fontSize
   )
-  titleLogo:setFillColor(0.5,0.5,0.5,1)
+  titleLogo:setFillColor(0.6,0.6,1,1)
   --titleLogo.x = display.contentCenterX
   --titleLogo.y = 100
 
@@ -44,6 +44,11 @@ function scene:show(event)
     --splash.x = G.xm
     --splash.y = G.ym
   elseif (phase == "did") then
+
+    local soundEffect = audio.loadSound("Assets/sounds/ice-shake.mp3")
+    audio.play( soundEffect, { channel = 1 } ) 
+
+
     -- TODO: temporarily shortened for development
     -- TODO: temporarily pointed at game scene instead
     timer.performWithDelay(2000, function() -- 1000

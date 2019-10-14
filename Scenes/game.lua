@@ -5,8 +5,9 @@ local scene = composer.newScene()
 --
 -- GLOBALS
 --
-AUDIOCHANNEL_BUTTON = 1
-AUDIOCHANNEL_PANEL = 2
+AUDIOCHANNEL_SHAKER = 1
+AUDIOCHANNEL_BUTTON = 2
+AUDIOCHANNEL_PANEL = 3
 ShakeHandler = require("Modules.handle-shake")
 
 --
@@ -146,7 +147,7 @@ local function onEnterFrame ( event )
 	--snapshot:invalidate()
 	
 	topBar:setShakesCounter(ShakeHandler.shakesCounter)
-	topBar:setSPS(ShakeHandler.shakesPerSecond)
+	topBar:setSPS(ShakeHandler.shakesPerSecondAvg)
 	
 	-- local secsInGame = math.floor(event.time/1000)
 	-- if secsInGame > secondsCounter then

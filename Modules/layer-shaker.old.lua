@@ -19,7 +19,7 @@ function M:new (x,y,w,h)
     physics.pause()
     
     -- create the physics border boxes for the liquid (invisible)
-    local borderBoxThickness = 20
+    local borderBoxThickness = 60
 
     local borderLeftSide = display.newRect(
         x - w/2 - borderBoxThickness/2+0, 
@@ -58,40 +58,25 @@ function M:new (x,y,w,h)
 
 	-- Create a liquid fun Particle System
 	particleSystem = physics.newParticleSystem{
-        filename = "Assets/particle-liquid-1.png",
-        colorMixingStrength = 0.01,
-        radius = 4,--3, 
-		imageRadius = 5,--4, 
+		filename = "Assets/particle-liquid-1.png",
+		radius = 3, --18,
+		imageRadius = 4, --30,
 		gravityScale = 1.0,
 		strictContactCheck = true
-	}
-
-
-
+	  }
+  
 	-- Create a "block" of water (LiquidFun group)
 	particleSystem:createGroup(
 	  {
-		  flags = { "tensile", "colorMixing" }, --tensile, water
-		  x = x+35,
-		  y = y+30,
+		  flags = { "tensile" }, --tensile, water
+		  x = x,
+		  y = y,
 		  color = { 0.9, 0.2, 0.2, 1},
-		  halfWidth = 35,--138,
-		  halfHeight = 110--220
+		  halfWidth = 138,
+		  halfHeight = 220
 	  }
     )
-
-	-- Create a "block" of water (LiquidFun group)
-	particleSystem:createGroup(
-	  {
-		  flags = { "tensile", "colorMixing" }, --tensile, water
-		  x = x-35,
-		  y = y+30,
-		  color = { 0.2, 0.3, 0.9, 1},
-		  halfWidth = 35,--138,
-		  halfHeight = 110--220
-	  }
-    )
-
+    
 
     -- -- Initialize snapshot for mainDisp since we want to put effects on in
     -- snapshot = display.newSnapshot( sceneGroup, w, h )
@@ -103,36 +88,18 @@ function M:new (x,y,w,h)
     -- -- Apply filter to MainDisp
     -- snapshot.fill.effect = "filter.sobel"
     -- --snapshot.fill.effect = "filter.blur"
---     snapshot.fill.effect = "filter.emboss"
--- snapshot.fill.effect = "filter.frostedGlass"
--- snapshot.fill.effect = "filter.crystallize"
--- snapshot.fill.effect = "filter.scatter"
     -- -- Insert the particle system into the snapshot
     -- snapshotGroup:insert( particleSystem )
     -- snapshotGroup.x = -w/2
     -- snapshotGroup.y = -h/2
     -- -- Remember to invalidate Snapshot in onEnterFrame Event Handler
 
-
-    --local shakerImage = display.newImageRect( "Assets/objects/shaker-1.png", display.actualContentWidth, display.actualContentHeight )
-    local imageFile = "Assets/objects/shaker-1.png"
-    --local imageOutline = graphics.newOutline( 2, imageFile )
-    local shakerImage = display.newImage( imageFile )
-    shakerImage.x = display.contentCenterX
-    shakerImage.y = display.contentCenterY
-
-    local physicsData = (require "Assets.objects.shapedefs").physicsData(1.0)
-    physics.addBody( shakerImage, "static", physicsData:get("shaker-1-outline") )
-
     self.display:insert(borderLeftSide)
     self.display:insert(borderTopSide)
     self.display:insert(borderRightSide)
     self.display:insert(borderBottomSide)
-
     self.display:insert(particleSystem)
     
-    self.display:insert(shakerImage)
-
     return self
 end
 
