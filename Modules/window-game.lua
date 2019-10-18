@@ -9,6 +9,10 @@ local layerAchievments = nil
 local LayerScoring = require("Modules.layer-scoring")
 local layerScoring = nil
 
+require("Class.ProgressBar")
+local barLevelProgress = nil
+local barTimer = nil
+
 local LayerShaker = require("Modules.layer-shaker")
 local layerShaker = nil
 
@@ -30,12 +34,17 @@ function M:new (x, y, w, h)
 
 	-- Create Shaker Layer
 	layerShaker = LayerShaker:new(x,y,w,h)
-    
-    self.display:insert( layerBackground.display )
+	
+	-- Create barLevelProgress
+	barLevelProgress = ProgressBar(x+(w*3/8), y, w/16, h/4, 2, 1, 20, 10)
+	barTimer = ProgressBar(x-(w*3/8), y, w/16, h/4, 2, 1, 20, 1)
+	
+	self.display:insert( layerBackground.display )
 	self.display:insert( layerShaker.display )
 	self.display:insert( layerScoring.display )
 	self.display:insert( layerAchievments.display )
-	
+	self.display:insert( barLevelProgress.display )
+	self.display:insert( barTimer.display)
 	return self
     
 end
@@ -69,6 +78,12 @@ function M:destroy (event)
 	layerShaker:destroy()
 	layerShaker = nil
 
+	barLevelProgress:destroy()
+	barLevelProgress = nil
+
+	barTimer:destroy()
+	barTimer = nil
+
 	self.display:removeSelf()
 	self.display = nil
 end
@@ -78,4 +93,32 @@ function M:updateForces()
 	layerShaker:updateForces()
 end
 
+
+function M:updateBars()
+	self:updateTimerBar(ShakeHandler:getSecsInLevel())
+	self:updateProgressBar(ShakeHandler.shakesPerSecondAvg)
+end
+
+function M:updateTimerBar(val)
+	barTimer:update(val)
+end
+
+function M:updateProgressBar(val)
+	barLevelProgress:update(val)
+end
+
 return M
+
+
+
+
+
+--[[
+
+for i=group.numChildren, 1, -1 do
+  local child = group[i]
+  child.someField = someValue
+  child.someMethod()
+end
+ 
+--]]

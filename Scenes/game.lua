@@ -155,9 +155,11 @@ local function onEnterFrame ( event )
 	-- 	ShakeHandler.shakesPerSecond = 0
 	-- 	secondsCounter = secsInGame
 	-- end
+
   
 	windowGame:updateForces()
-
+	windowGame:updateBars()
+	
 end
   
 
