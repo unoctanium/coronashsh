@@ -81,8 +81,6 @@ function ProgressBar:update(val)
         local dy = b - dh/2 
         self.rectActual.y = dy
         self.rectActual.height = dh
-        --print(val, A, B, a, b, dy, dh)
-
     end
 end
 
